@@ -7,6 +7,7 @@ Uses aiosqlite for async SQLite access.
 import aiosqlite
 import logging
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -14,19 +15,26 @@ logger = logging.getLogger(__name__)
 DB_PATH = os.getenv("DB_PATH", "data/leakhunter.db")
 
 
-async def get_db() -> aiosqlite.Connection:
-    """Return an open database connection with row_factory set."""
+@asynccontextmanager
+async def get_db():
+    """
+    Async context manager that yields a configured aiosqlite connection.
+
+    Usage:
+        async with get_db() as db:
+            await db.execute(...)
+    """
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
-    conn = await aiosqlite.connect(DB_PATH)
-    conn.row_factory = aiosqlite.Row
-    await conn.execute("PRAGMA journal_mode=WAL")
-    await conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+    async with aiosqlite.connect(DB_PATH) as conn:
+        conn.row_factory = aiosqlite.Row
+        await conn.execute("PRAGMA journal_mode=WAL")
+        await conn.execute("PRAGMA foreign_keys=ON")
+        yield conn
 
 
 async def init_db() -> None:
     """Create all tables if they don't exist and run any pending migrations."""
-    async with await get_db() as db:
+    async with get_db() as db:
         await _create_tables(db)
         await _run_migrations(db)
         await db.commit()

@@ -27,7 +27,7 @@ async def create_scan(
     used_token: str = "free",
 ) -> int:
     """Insert a scan record and return its ID."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             INSERT INTO scans
@@ -51,7 +51,7 @@ async def update_scan_results(
     duration_seconds: float,
 ) -> None:
     """Patch the scan row with final results after scanning completes."""
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             UPDATE scans SET
@@ -88,7 +88,7 @@ async def save_findings(scan_id: int, findings: list[dict]) -> None:
     if not findings:
         return
 
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.executemany(
             """
             INSERT INTO findings
@@ -114,13 +114,13 @@ async def save_findings(scan_id: int, findings: list[dict]) -> None:
 # ── retrieval ─────────────────────────────────────────────────────────────────
 
 async def get_scan(scan_id: int) -> Optional[aiosqlite.Row]:
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute("SELECT * FROM scans WHERE id = ?", (scan_id,))
         return await cursor.fetchone()
 
 
 async def get_scan_findings(scan_id: int) -> list[aiosqlite.Row]:
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             "SELECT * FROM findings WHERE scan_id = ? ORDER BY severity, file_path",
             (scan_id,),
@@ -133,7 +133,7 @@ async def get_user_history(
     limit: int = 10,
 ) -> list[aiosqlite.Row]:
     """Return the N most recent scans for a user."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             SELECT * FROM scans
@@ -148,7 +148,7 @@ async def get_user_history(
 
 async def get_user_scan_stats(telegram_id: int) -> dict:
     """Aggregate scan stats for a user — used in /mystats and admin /userstats."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             SELECT

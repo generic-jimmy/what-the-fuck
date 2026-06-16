@@ -25,7 +25,7 @@ async def create_application(telegram_id: int, reason: str) -> int:
     Insert a new pending application.
     Returns the new application ID.
     """
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             INSERT INTO applications (telegram_id, reason, status, created_at)
@@ -39,7 +39,7 @@ async def create_application(telegram_id: int, reason: str) -> int:
 
 async def has_pending_application(telegram_id: int) -> bool:
     """Return True if the user already has an unreviewed application."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             "SELECT id FROM applications WHERE telegram_id = ? AND status = 'pending'",
             (telegram_id,),
@@ -49,7 +49,7 @@ async def has_pending_application(telegram_id: int) -> bool:
 
 async def get_application_count(telegram_id: int) -> int:
     """Return total number of applications ever made by this user."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             "SELECT COUNT(*) FROM applications WHERE telegram_id = ?",
             (telegram_id,),
@@ -61,7 +61,7 @@ async def get_application_count(telegram_id: int) -> int:
 # ── fetch ─────────────────────────────────────────────────────────────────────
 
 async def get_application(app_id: int) -> Optional[aiosqlite.Row]:
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             "SELECT * FROM applications WHERE id = ?", (app_id,)
         )
@@ -70,7 +70,7 @@ async def get_application(app_id: int) -> Optional[aiosqlite.Row]:
 
 async def get_latest_application(telegram_id: int) -> Optional[aiosqlite.Row]:
     """Return the most recent application for a user regardless of status."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             SELECT * FROM applications
@@ -85,7 +85,7 @@ async def get_latest_application(telegram_id: int) -> Optional[aiosqlite.Row]:
 
 async def get_pending_applications() -> list[aiosqlite.Row]:
     """All applications with status='pending', oldest first."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             SELECT a.*, u.username, u.first_name, u.free_scans_used,
@@ -103,7 +103,7 @@ async def get_pending_applications() -> list[aiosqlite.Row]:
 
 async def get_all_applications(limit: int = 50) -> list[aiosqlite.Row]:
     """All applications (any status), most recent first."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             SELECT a.*, u.username, u.first_name
@@ -128,7 +128,7 @@ async def approve_application(
     Mark the pending application as approved and credit scans.
     Returns True if a pending application was found and updated.
     """
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             UPDATE applications
@@ -174,7 +174,7 @@ async def deny_application(
     Mark the pending application as denied.
     Returns True if a pending application was found.
     """
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             """
             UPDATE applications

@@ -31,7 +31,7 @@ async def upsert_user(
     first_name: Optional[str],
 ) -> None:
     """Insert a new user or update their username/name and last_seen timestamp."""
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             INSERT INTO users (telegram_id, username, first_name, last_seen_at)
@@ -48,7 +48,7 @@ async def upsert_user(
 
 async def get_user(telegram_id: int) -> Optional[aiosqlite.Row]:
     """Return the user row or None."""
-    async with await get_db() as db:
+    async with get_db() as db:
         cursor = await db.execute(
             "SELECT * FROM users WHERE telegram_id = ?", (telegram_id,)
         )
@@ -57,7 +57,7 @@ async def get_user(telegram_id: int) -> Optional[aiosqlite.Row]:
 
 async def get_all_users(include_blocked: bool = True) -> list[aiosqlite.Row]:
     """Return all users, optionally filtering out blocked ones."""
-    async with await get_db() as db:
+    async with get_db() as db:
         if include_blocked:
             cursor = await db.execute("SELECT * FROM users ORDER BY created_at DESC")
         else:
@@ -70,7 +70,7 @@ async def get_all_users(include_blocked: bool = True) -> list[aiosqlite.Row]:
 # ── block / unblock ───────────────────────────────────────────────────────────
 
 async def block_user(telegram_id: int, reason: Optional[str] = None) -> None:
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             UPDATE users
@@ -84,7 +84,7 @@ async def block_user(telegram_id: int, reason: Optional[str] = None) -> None:
 
 
 async def unblock_user(telegram_id: int) -> None:
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             UPDATE users
@@ -135,7 +135,7 @@ async def consume_scan(telegram_id: int, scan_type: str) -> None:
     if user is None:
         return
 
-    async with await get_db() as db:
+    async with get_db() as db:
         if user["free_scans_used"] < FREE_SCAN_LIMIT:
             await db.execute(
                 """
@@ -179,7 +179,7 @@ async def get_scan_balance(telegram_id: int) -> dict:
 # ── GitHub token ──────────────────────────────────────────────────────────────
 
 async def save_github_token(telegram_id: int, encrypted_token: str) -> None:
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             UPDATE users
@@ -200,7 +200,7 @@ async def get_github_token(telegram_id: int) -> Optional[str]:
 
 
 async def revoke_github_token(telegram_id: int) -> None:
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             UPDATE users
@@ -217,7 +217,7 @@ async def revoke_github_token(telegram_id: int) -> None:
 
 async def set_approved_scans(telegram_id: int, count: int) -> None:
     """Directly set a user's approved scan count (admin use)."""
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             "UPDATE users SET approved_scans_remaining = ? WHERE telegram_id = ?",
             (count, telegram_id),
@@ -227,7 +227,7 @@ async def set_approved_scans(telegram_id: int, count: int) -> None:
 
 async def add_approved_scans(telegram_id: int, count: int) -> None:
     """Add N scans on top of existing approved balance."""
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """
             UPDATE users
@@ -241,7 +241,7 @@ async def add_approved_scans(telegram_id: int, count: int) -> None:
 
 async def get_global_stats() -> dict:
     """Return platform-wide stats for admin /globalstats."""
-    async with await get_db() as db:
+    async with get_db() as db:
         total_users   = (await (await db.execute("SELECT COUNT(*) FROM users")).fetchone())[0]
         blocked_users = (await (await db.execute("SELECT COUNT(*) FROM users WHERE is_blocked=1")).fetchone())[0]
         total_scans   = (await (await db.execute("SELECT COUNT(*) FROM scans")).fetchone())[0]
